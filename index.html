@@ -2,73 +2,131 @@
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Брояч на Гласове 2026</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Избори 2026 - Брояч</title>
     <style>
-        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; text-align: center; }
-        .card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; }
-        .party-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .count { font-size: 24px; font-weight: bold; color: #2c3e50; min-width: 50px; }
-        button { padding: 10px 20px; font-size: 18px; cursor: pointer; border: none; border-radius: 5px; }
-        .plus { background: #27ae60; color: white; }
-        .minus { background: #e74c3c; color: white; margin-right: 5px; }
-        .pref-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 10px; }
-        .pref-box { background: #eee; padding: 5px; border-radius: 5px; font-size: 14px; }
-        .reset { background: #7f8c8d; color: white; margin-top: 20px; width: 100%; }
+        :root { --primary: #2c3e50; --success: #27ae60; --danger: #e74c3c; --bg: #f8f9fa; --accent: #3498db; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; user-select: none; }
+        header { background: var(--primary); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        h1 { margin: 0; font-size: 18px; }
+        .party-card { background: white; margin: 8px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid var(--primary); }
+        .party-main { padding: 12px; }
+        .party-header-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+        .party-info { flex-grow: 1; cursor: pointer; font-weight: 600; font-size: 15px; text-align: left; }
+        .party-info small { display: block; color: #7f8c8d; font-weight: normal; font-size: 11px; }
+        .party-perc { font-size: 13px; color: var(--accent); margin-left: 5px; }
+        .progress-container { width: 100%; height: 6px; background: #eee; border-radius: 3px; overflow: hidden; margin: 5px 0; }
+        .progress-bar { height: 100%; width: 0%; background: var(--success); transition: width 0.3s ease; }
+        .counter-group { display: flex; align-items: center; gap: 10px; }
+        .count-display { font-size: 22px; font-weight: bold; min-width: 35px; text-align: center; color: var(--primary); }
+        button { border: none; border-radius: 6px; padding: 10px 15px; font-weight: bold; cursor: pointer; color: white; -webkit-tap-highlight-color: transparent; }
+        .btn-plus { background: var(--success); font-size: 20px; }
+        .btn-minus { background: var(--danger); font-size: 20px; }
+        .prefs-container { display: none; background: #f1f2f6; padding: 10px; grid-template-columns: 1fr; gap: 8px; border-top: 1px solid #ddd; }
+        .pref-item { background: white; padding: 8px; border-radius: 6px; border: 1px solid #ddd; display: flex; flex-direction: column; }
+        .pref-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .pref-name { font-size: 13px; font-weight: bold; color: var(--primary); text-align: left; }
+        .pref-stats { font-size: 12px; color: var(--accent); }
+        .pref-controls { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .pref-bar-bg { width: 100%; height: 4px; background: #eee; border-radius: 2px; margin-top: 8px; overflow: hidden; }
+        .pref-bar-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.3s; }
+        .total-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--primary); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 18px; z-index: 1001; }
+        .reset-link { color: #bdc3c7; font-size: 11px; text-decoration: underline; cursor: pointer; }
+        .active .prefs-container { display: grid; }
+        .active { border-left-color: var(--success); }
     </style>
 </head>
 <body>
 
-    <h1>Брояч на Гласове</h1>
-    
-    <div id="app">
-        <!-- Пример за една партия -->
-        <div class="card">
-            <div class="party-row">
-                <span style="font-weight: bold;">Партия №1</span>
-                <div>
-                    <button class="minus" onclick="change('p1', -1)">-</button>
-                    <span id="p1" class="count">0</span>
-                    <button class="plus" onclick="change('p1', 1)">+</button>
-                </div>
-            </div>
-            
-            <div class="pref-container">
-                <div class="pref-box">101: <span id="p1-101">0</span> <br> <button onclick="change('p1-101', 1)">+</button></div>
-                <div class="pref-box">102: <span id="p1-102">0</span> <br> <button onclick="change('p1-102', 1)">+</button></div>
-                <div class="pref-box">103: <span id="p1-103">0</span> <br> <button onclick="change('p1-103', 1)">+</button></div>
-            </div>
-        </div>
+<header><h1>Избори 19.04.2026 - Брояч</h1></header>
+<div id="app"></div>
+<div class="total-bar">
+    <div>ОБЩО ГЛАСОВЕ: <span id="total-votes">0</span></div>
+    <div class="reset-link" onclick="resetAll()">НУЛИРАЙ</div>
+</div>
 
-        <!-- Можеш да копираш горния блок за още партии -->
-    </div>
+<script>
+    const parties = [
+        "1. ПП ИМА ТАКЪВ НАРОД", "2. ПРЯКА ДЕМОКРАЦИЯ", "3. СИНЯ БЪЛГАРИЯ", "4. ПП МЕЧ",
+        "5. БСП – ОБЕДИНЕНА ЛЕВИЦА", "6. ПП НАРОДНА ПАРТИЯ ИСТИНАТА И САМО ИСТИНАТА",
+        "7. КП ПП – ДБ", "8. ВЪЗРАЖДАНЕ", "9. МОЯ БЪЛГАРИЯ", "10. Движение на непартийните кандидати",
+        "11. АЛИАНС ЗА ПРАВА И СВОБОДИ – АПС", "12. АНТИКОРУПЦИОНЕН БЛОК", "13. НД НЕПОКОРНА БЪЛГАРИЯ",
+        "14. ПП ВЕЛИЧИЕ", "15. ГЕРБ-СДС", "16. КП ТРЕТИ МАРТ", "17. Движение за права и свободи - ДПС",
+        "18. ПП НАЦИЯ", "19. БЪЛГАРИЯ МОЖЕ", "20. СИЯНИЕ", "21. ПРОГРЕСИВНА БЪЛГАРИЯ",
+        "22. Съпротива", "23. Партия на ЗЕЛЕНИТЕ", "24. ПП ГЛАС НАРОДЕН"
+    ];
 
-    <button class="reset" onclick="resetAll()">Нулирай всичко</button>
+    const candidateNames = {
+        "p1": { "101": "Снежанка Траянска", "102": "Теодора Миланова", "103": "Маргарита Пушкарова", "104": "Митко Митов", "105": "Тодор Дабков", "106": "Боян Аврамов" },
+        "p2": { "101": "Маргарит Карабуров" },
+        "p3": { "101": "Камелия Кимонова", "102": "Валентина Новакова", "103": "Богомил Лазаров", "104": "Ирина Конарова", "105": "Иванка Събева", "106": "Йоан Лудев" },
+        "p4": { "101": "Кристина Уланова", "102": "Светлозар Косев", "103": "Иво Тихов", "104": "Соня Иванова" },
+        "p5": { "101": "Николай Цонков", "102": "Миглена Пройнова", "103": "Дафинка Ганева", "104": "Светослав Минчев", "105": "Венелин Бараков", "106": "Генади Цитлакидис", "107": "Теофан Георгиев", "108": "Тихомир Трифонов" },
+        "p6": { "101": "Емил Стефанов", "102": "Станислав Сашев" },
+        "p7": { "101": "Богомил Петков", "102": "Николай Томитов", "103": "Алекс Згрипаров", "104": "Ивелин Стоянов", "105": "Михаил Гилин", "106": "Антония Добрева", "107": "Стефан Костадинов", "108": "Петя Куманова" },
+        "p8": { "101": "Даниел Петров", "102": "Иван Томов", "103": "Наташа Цанкова", "104": "Йордан Андреев", "105": "Александър Александров", "106": "Марияна Цвяткова", "107": "Евелин Йорданов", "108": "Христофор Тодоров" },
+        "p9": { "101": "Атанас Шмидт" },
+        "p10": { "101": "Теодор Неделчев", "102": "Лъчезар Видински" },
+        "p11": { "101": "Цветелина Колева", "102": "Али Алиев", "103": "Деница Здравкович", "104": "Сибел Адилева", "105": "Филиз Лазарова", "106": "Хюлия Мехмедова", "107": "Ердоан Узунов" },
+        "p12": { "101": "Светлозар Киров", "102": "Маргарита Симеонова", "103": "Борислав Ботев", "104": "Калоян Йорданов" },
+        "p13": { "101": "Атанас Щилянов", "102": "Атанас Чокоев", "103": "Александър Бисеров", "104": "Патрик-Рустам Катречко" },
+        "p14": { "101": "Недко Ангелов", "102": "Атанас Велчев", "103": "Марияна Иванова", "104": "Мирослав Михов", "105": "Велин Мечкаров", "106": "Ивайло Кунчев", "107": "Пламен Ганчев" },
+        "p15": { "101": "Томислав Дончев", "102": "Михаил Митов", "103": "Атанас Атанасов", "104": "Константин Брънеков", "105": "Иван Марев", "106": "Максим Садинов", "107": "Християна Кръстева", "108": "Веселин Данчев" },
+        "p16": { "101": "Красимир Алексиев", "102": "Иван Асенов", "103": "Татяна Бастрева" },
+        "p17": { "101": "Хамид Хамид", "102": "Алейдин Салиев", "103": "Петър Цвятков", "104": "Илияна Дакова", "105": "Фейзи Сали", "106": "Хасан Хаджихасан" },
+        "p18": { "101": "Димитър Шилдаров", "102": "Ива Митрева" },
+        "p19": { "101": "Таня Дишлиева", "102": "Борислав Банчев", "103": "Стефка Лулева" },
+        "p20": { "101": "Нинелла Върбанова", "102": "Христина Тодорова" },
+        "p21": { "101": "Николай Косев", "102": "Данаил Петков", "103": "Силвия Кръстева", "104": "Андрей Николов", "105": "Иван Събев", "106": "Мирослав Влашев", "107": "Камен Григоров", "108": "Росен Цветков" },
+        "p22": { "101": "Параскева Желева", "102": "Никола Хайлазов", "103": "Васил Василев" },
+        "p23": { "101": "Ивелин Събчев", "102": "Христо Христов", "103": "Анна Асанова", "104": "Спас Ангелов" },
+        "p24": { "101": "Мартин Минков" }
+    };
 
-    <script>
-        function change(id, delta) {
-            let el = document.getElementById(id);
-            let val = parseInt(el.innerText) + delta;
-            if (val < 0) val = 0;
-            el.innerText = val;
-            
-            // Автоматично запазване в паметта на телефона
-            localStorage.setItem('votes', document.getElementById('app').innerHTML);
-        }
-
-        function resetAll() {
-            if(confirm("Сигурни ли сте, че искате да нулирате резултатите?")) {
-                const counts = document.querySelectorAll('.count, .pref-box span');
-                counts.forEach(c => c.innerText = "0");
-                localStorage.removeItem('votes');
+    function render() {
+        const container = document.getElementById('app');
+        container.innerHTML = parties.map((name, i) => {
+            const pId = `p${i + 1}`;
+            const hasPrefs = !!candidateNames[pId];
+            let prefHtml = "";
+            if (hasPrefs) {
+                Object.keys(candidateNames[pId]).forEach(k => {
+                    const prefId = `${pId}_${k}`;
+                    prefHtml += `<div class="pref-item">
+                        <div class="pref-top"><span class="pref-name">${k}. ${candidateNames[pId][k]}</span><span id="prefperc-${prefId}" class="pref-stats">0%</span></div>
+                        <div class="pref-controls"><button class="btn-minus" onclick="update('${prefId}', -1, event)">-</button><span id="${prefId}" style="font-weight:bold; font-size:18px">0</span><button class="btn-plus" onclick="update('${prefId}', 1, event)">+</button></div>
+                        <div class="pref-bar-bg"><div id="prefbar-${prefId}" class="pref-bar-fill"></div></div></div>`;
+                });
+            }
+            return `<div class="party-card" id="card-${pId}"><div class="party-main"><div class="party-header-row"><div class="party-info" onclick="${hasPrefs ? `togglePrefs('${pId}')` : ''}"><span>${name}</span> <span id="perc-${pId}" class="party-perc">0%</span>${hasPrefs ? '<small>Натисни за преференции</small>' : ''}</div><div class="counter-group"><button class="btn-minus" onclick="update('${pId}', -1, event)">-</button><span id="${pId}" class="count-display">0</span><button class="btn-plus" onclick="update('${pId}', 1, event)">+</button></div></div><div class="progress-container"><div class="progress-bar" id="bar-${pId}"></div></div></div>${hasPrefs ? `<div class="prefs-container">${prefHtml}</div>` : ''}</div>`;
+        }).join('');
+        load();
+    }
+    function togglePrefs(id) { document.getElementById(`card-${id}`).classList.toggle('active'); }
+    function update(id, d, e) { if(e) e.stopPropagation(); const el = document.getElementById(id); let v = parseInt(el.innerText || 0) + d; el.innerText = v < 0 ? 0 : v; refreshUI(); save(); }
+    function refreshUI() {
+        let total = 0;
+        for(let i=1; i<=24; i++) total += parseInt(document.getElementById(`p${i}`).innerText || 0);
+        document.getElementById('total-votes').innerText = total;
+        for(let i=1; i<=24; i++) {
+            const id = `p${i}`; const c = parseInt(document.getElementById(id).innerText || 0);
+            const p = total > 0 ? ((c / total) * 100).toFixed(1) : 0;
+            document.getElementById(`perc-${id}`).innerText = `${p}%`;
+            document.getElementById(`bar-${id}`).style.width = `${p}%`;
+            if (candidateNames[id]) {
+                Object.keys(candidateNames[id]).forEach(k => {
+                    const pid = `${id}_${k}`; const pc = parseInt(document.getElementById(pid).innerText || 0);
+                    const pp = c > 0 ? ((pc / c) * 100).toFixed(1) : 0;
+                    document.getElementById(`prefperc-${pid}`).innerText = `${pp}%`;
+                    document.getElementById(`prefbar-${pid}`).style.width = `${pp}%`;
+                });
             }
         }
-
-        // Зареждане на записани данни при отваряне
-        window.onload = () => {
-            const saved = localStorage.getItem('votes');
-            if (saved) document.getElementById('app').innerHTML = saved;
-        };
-    </script>
+    }
+    function save() { const d = {}; document.querySelectorAll('[id^="p"]').forEach(el => d[el.id] = el.innerText); localStorage.setItem('v2026_final', JSON.stringify(d)); }
+    function load() { const s = localStorage.getItem('v2026_final'); if(s) { const d = JSON.parse(s); Object.keys(d).forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerText = d[id]; }); refreshUI(); } }
+    function resetAll() { if(confirm("Изтриване на всички резултати?")) { localStorage.clear(); location.reload(); } }
+    render();
+</script>
 </body>
 </html>
