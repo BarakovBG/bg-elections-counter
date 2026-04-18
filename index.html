@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Брояч на Гласове 2026</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; text-align: center; }
+        .card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; }
+        .party-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .count { font-size: 24px; font-weight: bold; color: #2c3e50; min-width: 50px; }
+        button { padding: 10px 20px; font-size: 18px; cursor: pointer; border: none; border-radius: 5px; }
+        .plus { background: #27ae60; color: white; }
+        .minus { background: #e74c3c; color: white; margin-right: 5px; }
+        .pref-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 10px; }
+        .pref-box { background: #eee; padding: 5px; border-radius: 5px; font-size: 14px; }
+        .reset { background: #7f8c8d; color: white; margin-top: 20px; width: 100%; }
+    </style>
+</head>
+<body>
+
+    <h1>Брояч на Гласове</h1>
+    
+    <div id="app">
+        <!-- Пример за една партия -->
+        <div class="card">
+            <div class="party-row">
+                <span style="font-weight: bold;">Партия №1</span>
+                <div>
+                    <button class="minus" onclick="change('p1', -1)">-</button>
+                    <span id="p1" class="count">0</span>
+                    <button class="plus" onclick="change('p1', 1)">+</button>
+                </div>
+            </div>
+            
+            <div class="pref-container">
+                <div class="pref-box">101: <span id="p1-101">0</span> <br> <button onclick="change('p1-101', 1)">+</button></div>
+                <div class="pref-box">102: <span id="p1-102">0</span> <br> <button onclick="change('p1-102', 1)">+</button></div>
+                <div class="pref-box">103: <span id="p1-103">0</span> <br> <button onclick="change('p1-103', 1)">+</button></div>
+            </div>
+        </div>
+
+        <!-- Можеш да копираш горния блок за още партии -->
+    </div>
+
+    <button class="reset" onclick="resetAll()">Нулирай всичко</button>
+
+    <script>
+        function change(id, delta) {
+            let el = document.getElementById(id);
+            let val = parseInt(el.innerText) + delta;
+            if (val < 0) val = 0;
+            el.innerText = val;
+            
+            // Автоматично запазване в паметта на телефона
+            localStorage.setItem('votes', document.getElementById('app').innerHTML);
+        }
+
+        function resetAll() {
+            if(confirm("Сигурни ли сте, че искате да нулирате резултатите?")) {
+                const counts = document.querySelectorAll('.count, .pref-box span');
+                counts.forEach(c => c.innerText = "0");
+                localStorage.removeItem('votes');
+            }
+        }
+
+        // Зареждане на записани данни при отваряне
+        window.onload = () => {
+            const saved = localStorage.getItem('votes');
+            if (saved) document.getElementById('app').innerHTML = saved;
+        };
+    </script>
+</body>
+</html>
