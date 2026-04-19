@@ -9,7 +9,40 @@
         body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; user-select: none; }
         header { background: var(--primary); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         h1 { margin: 0; font-size: 18px; }
-        .party-card { background: white; margin: 8px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid var(--primary); }
+        
+        .controls { 
+            background: white; 
+            padding: 12px; 
+            text-align: center; 
+            border-bottom: 1px solid #ddd; 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            gap: 12px; 
+            align-items: center; 
+        }
+        .toggle-btn { 
+            background: var(--accent); 
+            color: white; 
+            border: none; 
+            padding: 11px 18px; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            font-size: 14.5px;
+        }
+        .toggle-btn.active { background: var(--success); }
+
+        .parties-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            padding: 8px;
+        }
+        @media (max-width: 768px) { .parties-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 480px) { .parties-grid { grid-template-columns: 1fr; } }
+
+        .party-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid var(--primary); }
         .party-main { padding: 12px; }
         .party-header-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
         .party-info { flex-grow: 1; cursor: pointer; font-weight: 600; font-size: 15px; text-align: left; }
@@ -19,9 +52,12 @@
         .progress-bar { height: 100%; width: 0%; background: var(--success); transition: width 0.3s ease; }
         .counter-group { display: flex; align-items: center; gap: 10px; }
         .count-display { font-size: 22px; font-weight: bold; min-width: 35px; text-align: center; color: var(--primary); }
-        button { border: none; border-radius: 6px; padding: 10px 15px; font-weight: bold; cursor: pointer; color: white; -webkit-tap-highlight-color: transparent; }
+
+        button { border: none; border-radius: 6px; padding: 10px 15px; font-weight: bold; cursor: pointer; color: white; }
         .btn-plus { background: var(--success); font-size: 20px; }
         .btn-minus { background: var(--danger); font-size: 20px; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
         .prefs-container { display: none; background: #f1f2f6; padding: 10px; grid-template-columns: 1fr; gap: 8px; border-top: 1px solid #ddd; }
         .pref-item { background: white; padding: 8px; border-radius: 6px; border: 1px solid #ddd; display: flex; flex-direction: column; }
         .pref-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
@@ -30,20 +66,53 @@
         .pref-controls { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .pref-bar-bg { width: 100%; height: 4px; background: #eee; border-radius: 2px; margin-top: 8px; overflow: hidden; }
         .pref-bar-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.3s; }
-        .total-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--primary); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 18px; z-index: 1001; }
-        .reset-link { color: #bdc3c7; font-size: 11px; text-decoration: underline; cursor: pointer; }
+
+        .special-card { border-left-color: #95a5a6; margin: 8px; }
+        .total-bar { 
+            position: fixed; bottom: 0; left: 0; right: 0; background: var(--primary); color: white; 
+            padding: 15px; display: flex; justify-content: space-between; align-items: center; 
+            font-weight: bold; font-size: 18px; z-index: 1001; flex-wrap: wrap; gap: 10px; 
+        }
+        .reset-link, .action-link { color: #bdc3c7; font-size: 11px; text-decoration: underline; cursor: pointer; margin-left: 15px; }
         .active .prefs-container { display: grid; }
         .active { border-left-color: var(--success); }
+        .activity { font-size: 15px; color: white; }
     </style>
 </head>
 <body>
+<header>
+    <h1>БРОЯЧ</h1>
+    <h1>Избори 19.04.2026 • 7. МИР – Габрово</h1>
+</header>
 
-<header><h1>БРОЯЧ</h1><br><h1>Избори 19.04.2026 7. МИР – Габрово</h1></header>
-<div id="app"></div>
-<div class="total-bar">
-    <div>ОБЩО ГЛАСОВЕ: <span id="total-votes">0</span></div>
-    <div class="reset-link" onclick="resetAll()">НУЛИРАЙ</div>
+<div class="controls">
+    <button id="sortToggle" class="toggle-btn" onclick="toggleSort()">🔀 Сортиране: ИЗКЛ.</button>
+    <button id="editToggle" class="toggle-btn active" onclick="toggleEditMode()">✏️ Добавяне: ВКЛ.</button>
+    <button id="invalidToggle" class="toggle-btn" onclick="toggleInvalidMode()">⚠️ Невалидни в броя: ИЗКЛ.</button>
+    
+    <div>
+        <label>
+            <input type="checkbox" id="machineVoting" onchange="updateExportSuffix()">
+            Машинно гласуване
+        </label>
+    </div>
 </div>
+
+<div id="app"></div>
+
+<div class="total-bar">
+    <div>
+        ОБЩО ГЛАСОВЕ: <span id="total-votes">0</span><br>
+        <span class="activity">Активност: <span id="activity">0%</span></span>
+    </div>
+    <div>
+        <span class="action-link" onclick="exportData()">📤 ЕКСПОРТ</span>
+        <span class="action-link" onclick="document.getElementById('importFile').click()">📥 ИМПОРТ</span>
+        <span class="reset-link" onclick="resetAll()">🔄 НУЛИРАЙ</span>
+    </div>
+</div>
+
+<input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
 
 <script>
     const parties = [
@@ -83,9 +152,21 @@
         "p24": { "101": "Мартин Минков" }
     };
 
+    let sortByVotes = false;
+    let invalidVotes = 0;
+    let destroyedVotes = 0;
+    let noneVotes = 0;
+    let totalVoters = 0;
+    let isMachineVoting = false;
+    let editMode = true;
+    let includeInvalid = false;   // новата опция - по подразбиране изключена
+
     function render() {
         const container = document.getElementById('app');
-        container.innerHTML = parties.map((name, i) => {
+        let html = '<div class="parties-grid" id="partiesGrid">';
+
+        // Партиите (без промяна)
+        html += parties.map((name, i) => {
             const pId = `p${i + 1}`;
             const hasPrefs = !!candidateNames[pId];
             let prefHtml = "";
@@ -94,28 +175,194 @@
                     const prefId = `${pId}_${k}`;
                     prefHtml += `<div class="pref-item">
                         <div class="pref-top"><span class="pref-name">${k}. ${candidateNames[pId][k]}</span><span id="prefperc-${prefId}" class="pref-stats">0%</span></div>
-                        <div class="pref-controls"><button class="btn-minus" onclick="update('${prefId}', -1, event)">-</button><span id="${prefId}" style="font-weight:bold; font-size:18px">0</span><button class="btn-plus" onclick="update('${prefId}', 1, event)">+</button></div>
-                        <div class="pref-bar-bg"><div id="prefbar-${prefId}" class="pref-bar-fill"></div></div></div>`;
+                        <div class="pref-controls">
+                            <button class="btn-minus" onclick="update('${prefId}', -1, event)" ${editMode ? '' : 'disabled'}>-</button>
+                            <span id="${prefId}" style="font-weight:bold; font-size:18px">0</span>
+                            <button class="btn-plus" onclick="update('${prefId}', 1, event)" ${editMode ? '' : 'disabled'}>+</button>
+                        </div>
+                        <div class="pref-bar-bg"><div id="prefbar-${prefId}" class="pref-bar-fill"></div></div>
+                    </div>`;
                 });
             }
-            return `<div class="party-card" id="card-${pId}"><div class="party-main"><div class="party-header-row"><div class="party-info" onclick="${hasPrefs ? `togglePrefs('${pId}')` : ''}"><span>${name}</span> <span id="perc-${pId}" class="party-perc">0%</span>${hasPrefs ? '<small>Натисни за преференции</small>' : ''}</div><div class="counter-group"><button class="btn-minus" onclick="update('${pId}', -1, event)">-</button><span id="${pId}" class="count-display">0</span><button class="btn-plus" onclick="update('${pId}', 1, event)">+</button></div></div><div class="progress-container"><div class="progress-bar" id="bar-${pId}"></div></div></div>${hasPrefs ? `<div class="prefs-container">${prefHtml}</div>` : ''}</div>`;
+            return `<div class="party-card" id="card-${pId}">
+                <div class="party-main">
+                    <div class="party-header-row">
+                        <div class="party-info" onclick="${hasPrefs ? `togglePrefs('${pId}')` : ''}">
+                            <span>${name}</span> 
+                            <span id="perc-${pId}" class="party-perc">0%</span>
+                            ${hasPrefs ? '<small>Натисни за преференции</small>' : ''}
+                        </div>
+                        <div class="counter-group">
+                            <button class="btn-minus" onclick="update('${pId}', -1, event)" ${editMode ? '' : 'disabled'}>-</button>
+                            <span id="${pId}" class="count-display">0</span>
+                            <button class="btn-plus" onclick="update('${pId}', 1, event)" ${editMode ? '' : 'disabled'}>+</button>
+                        </div>
+                    </div>
+                    <div class="progress-container"><div class="progress-bar" id="bar-${pId}"></div></div>
+                </div>
+                ${hasPrefs ? `<div class="prefs-container">${prefHtml}</div>` : ''}
+            </div>`;
         }).join('');
+
+        html += '</div>';
+
+        // Специални полета
+        html += `
+        <div class="party-card special-card">
+            <div class="party-main">
+                <div class="party-header-row">
+                    <div class="party-info">❌ СГРЕШЕНИ БЮЛЕТИНИ</div>
+                    <div class="counter-group">
+                        <button class="btn-minus" onclick="updateSpecial('invalid', -1)" ${editMode ? '' : 'disabled'}>-</button>
+                        <span id="invalid" class="count-display">0</span>
+                        <button class="btn-plus" onclick="updateSpecial('invalid', 1)" ${editMode ? '' : 'disabled'}>+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="party-card special-card">
+            <div class="party-main">
+                <div class="party-header-row">
+                    <div class="party-info">🗑️ УНИЩОЖЕНИ БЮЛЕТИНИ</div>
+                    <div class="counter-group">
+                        <button class="btn-minus" onclick="updateSpecial('destroyed', -1)" ${editMode ? '' : 'disabled'}>-</button>
+                        <span id="destroyed" class="count-display">0</span>
+                        <button class="btn-plus" onclick="updateSpecial('destroyed', 1)" ${editMode ? '' : 'disabled'}>+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="party-card special-card">
+            <div class="party-main">
+                <div class="party-header-row">
+                    <div class="party-info">🚫 НЕ ПОДКРЕПЯМ НИКОГО</div>
+                    <div class="counter-group">
+                        <button class="btn-minus" onclick="updateSpecial('none', -1)" ${editMode ? '' : 'disabled'}>-</button>
+                        <span id="none" class="count-display">0</span>
+                        <button class="btn-plus" onclick="updateSpecial('none', 1)" ${editMode ? '' : 'disabled'}>+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="party-card special-card">
+            <div class="party-main">
+                <div class="party-header-row">
+                    <div class="party-info">👥 ОБЩ БРОЙ ИЗБИРАТЕЛИ В СЕКЦИЯТА</div>
+                    <div class="counter-group">
+                        <button class="btn-minus" onclick="updateVoters(-10)" ${editMode ? '' : 'disabled'}>-10</button>
+                        <button class="btn-minus" onclick="updateVoters(-1)" ${editMode ? '' : 'disabled'}>-</button>
+                        <span id="totalVoters" class="count-display">0</span>
+                        <button class="btn-plus" onclick="updateVoters(1)" ${editMode ? '' : 'disabled'}>+</button>
+                        <button class="btn-plus" onclick="updateVoters(10)" ${editMode ? '' : 'disabled'}>+10</button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+
+        container.innerHTML = html;
         load();
+        if (sortByVotes) applySort();
     }
-    function togglePrefs(id) { document.getElementById(`card-${id}`).classList.toggle('active'); }
-    function update(id, d, e) { if(e) e.stopPropagation(); const el = document.getElementById(id); let v = parseInt(el.innerText || 0) + d; el.innerText = v < 0 ? 0 : v; refreshUI(); save(); }
+
+    function toggleSort() {
+        sortByVotes = !sortByVotes;
+        const btn = document.getElementById('sortToggle');
+        btn.textContent = sortByVotes ? "🔀 Сортиране: ВКЛ." : "🔀 Сортиране: ИЗКЛ.";
+        btn.classList.toggle('active', sortByVotes);
+        applySort();
+    }
+
+    function toggleEditMode() {
+        editMode = !editMode;
+        const btn = document.getElementById('editToggle');
+        btn.textContent = editMode ? "✏️ Добавяне: ВКЛ." : "✏️ Добавяне: ИЗКЛ.";
+        btn.classList.toggle('active', editMode);
+        render();
+    }
+
+    function toggleInvalidMode() {
+        includeInvalid = !includeInvalid;
+        const btn = document.getElementById('invalidToggle');
+        btn.textContent = includeInvalid ? "⚠️ Невалидни в броя: ВКЛ." : "⚠️ Невалидни в броя: ИЗКЛ.";
+        btn.classList.toggle('active', includeInvalid);
+        refreshUI();
+    }
+
+    function applySort() {
+        const grid = document.getElementById('partiesGrid');
+        if (!grid) return;
+        const cards = Array.from(grid.children);
+        if (sortByVotes) {
+            cards.sort((a, b) => (parseInt(b.querySelector('.count-display').innerText) || 0) - (parseInt(a.querySelector('.count-display').innerText) || 0));
+        } else {
+            cards.sort((a, b) => parseInt(a.id.replace('card-p','')) - parseInt(b.id.replace('card-p','')));
+        }
+        cards.forEach(card => grid.appendChild(card));
+    }
+
+    function updateExportSuffix() {
+        isMachineVoting = document.getElementById('machineVoting').checked;
+    }
+
+    function update(id, d, e) {
+        if (!editMode) return;
+        if(e) e.stopPropagation();
+        const el = document.getElementById(id);
+        let v = parseInt(el.innerText || 0) + d;
+        el.innerText = v < 0 ? 0 : v;
+        refreshUI();
+        save();
+        if (sortByVotes) applySort();
+    }
+
+    function updateSpecial(type, d) {
+        if (!editMode) return;
+        if (type === 'invalid') { invalidVotes = Math.max(0, invalidVotes + d); document.getElementById('invalid').innerText = invalidVotes; }
+        else if (type === 'destroyed') { destroyedVotes = Math.max(0, destroyedVotes + d); document.getElementById('destroyed').innerText = destroyedVotes; }
+        else if (type === 'none') { noneVotes = Math.max(0, noneVotes + d); document.getElementById('none').innerText = noneVotes; }
+        refreshUI();
+        save();
+    }
+
+    function updateVoters(d) {
+        if (!editMode) return;
+        totalVoters = Math.max(0, totalVoters + d);
+        document.getElementById('totalVoters').innerText = totalVoters;
+        refreshUI();
+        save();
+    }
+
     function refreshUI() {
-        let total = 0;
-        for(let i=1; i<=24; i++) total += parseInt(document.getElementById(`p${i}`).innerText || 0);
-        document.getElementById('total-votes').innerText = total;
+        let partyTotal = 0;
         for(let i=1; i<=24; i++) {
-            const id = `p${i}`; const c = parseInt(document.getElementById(id).innerText || 0);
-            const p = total > 0 ? ((c / total) * 100).toFixed(1) : 0;
+            partyTotal += parseInt(document.getElementById(`p${i}`).innerText || 0);
+        }
+
+        let validTotal = partyTotal + noneVotes;
+        if (includeInvalid) {
+            validTotal += invalidVotes + destroyedVotes;
+        }
+
+        document.getElementById('total-votes').innerText = validTotal;
+
+        const activity = totalVoters > 0 ? ((validTotal / totalVoters) * 100).toFixed(1) : 0;
+        document.getElementById('activity').innerText = activity + '%';
+
+        // Проценти на партиите (само между партиите)
+        for(let i=1; i<=24; i++) {
+            const id = `p${i}`;
+            const c = parseInt(document.getElementById(id).innerText || 0);
+            const p = partyTotal > 0 ? ((c / partyTotal) * 100).toFixed(1) : 0;
             document.getElementById(`perc-${id}`).innerText = `${p}%`;
             document.getElementById(`bar-${id}`).style.width = `${p}%`;
+
             if (candidateNames[id]) {
                 Object.keys(candidateNames[id]).forEach(k => {
-                    const pid = `${id}_${k}`; const pc = parseInt(document.getElementById(pid).innerText || 0);
+                    const pid = `${id}_${k}`;
+                    const pc = parseInt(document.getElementById(pid).innerText || 0);
                     const pp = c > 0 ? ((pc / c) * 100).toFixed(1) : 0;
                     document.getElementById(`prefperc-${pid}`).innerText = `${pp}%`;
                     document.getElementById(`prefbar-${pid}`).style.width = `${pp}%`;
@@ -123,9 +370,132 @@
             }
         }
     }
-    function save() { const d = {}; document.querySelectorAll('[id^="p"]').forEach(el => d[el.id] = el.innerText); localStorage.setItem('v2026_final', JSON.stringify(d)); }
-    function load() { const s = localStorage.getItem('v2026_final'); if(s) { const d = JSON.parse(s); Object.keys(d).forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerText = d[id]; }); refreshUI(); } }
-    function resetAll() { if(confirm("Изтриване на всички резултати?")) { localStorage.clear(); location.reload(); } }
+
+    function save() {
+        const d = {};
+        for(let i=1; i<=24; i++) {
+            const id = `p${i}`;
+            d[id] = document.getElementById(id).innerText;
+            if (candidateNames[id]) {
+                Object.keys(candidateNames[id]).forEach(k => {
+                    const pid = `${id}_${k}`;
+                    d[pid] = document.getElementById(pid).innerText;
+                });
+            }
+        }
+        d.invalid = invalidVotes;
+        d.destroyed = destroyedVotes;
+        d.none = noneVotes;
+        d.totalVoters = totalVoters;
+        d.includeInvalid = includeInvalid;
+        localStorage.setItem('v2026_final', JSON.stringify(d));
+    }
+
+    function load() {
+        const s = localStorage.getItem('v2026_final');
+        if (s) {
+            const d = JSON.parse(s);
+            Object.keys(d).forEach(id => {
+                if (document.getElementById(id)) document.getElementById(id).innerText = d[id];
+            });
+            invalidVotes = parseInt(d.invalid || 0);
+            destroyedVotes = parseInt(d.destroyed || 0);
+            noneVotes = parseInt(d.none || 0);
+            totalVoters = parseInt(d.totalVoters || 0);
+            includeInvalid = d.includeInvalid || false;
+
+            document.getElementById('invalid').innerText = invalidVotes;
+            document.getElementById('destroyed').innerText = destroyedVotes;
+            document.getElementById('none').innerText = noneVotes;
+            document.getElementById('totalVoters').innerText = totalVoters;
+
+            const btn = document.getElementById('invalidToggle');
+            btn.textContent = includeInvalid ? "⚠️ Невалидни в броя: ВКЛ." : "⚠️ Невалидни в броя: ИЗКЛ.";
+            btn.classList.toggle('active', includeInvalid);
+        }
+        refreshUI();
+    }
+
+    // Останалите функции (exportData, importData, resetAll, togglePrefs) са същите като преди
+    function exportData() {
+        const suffix = isMachineVoting ? "_машинно" : "_хартия";
+        const data = { 
+            parties: {}, invalid: invalidVotes, destroyed: destroyedVotes, none: noneVotes, 
+            totalVoters: totalVoters, machineVoting: isMachineVoting, 
+            includeInvalid: includeInvalid, timestamp: new Date().toISOString() 
+        };
+        for(let i=1; i<=24; i++) {
+            const id = `p${i}`;
+            data.parties[id] = { votes: parseInt(document.getElementById(id).innerText || 0) };
+            if (candidateNames[id]) {
+                data.parties[id].prefs = {};
+                Object.keys(candidateNames[id]).forEach(k => {
+                    const pid = `${id}_${k}`;
+                    data.parties[id].prefs[k] = parseInt(document.getElementById(pid).innerText || 0);
+                });
+            }
+        }
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `brojach_gabrovo_2026${suffix}_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function importData(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            try {
+                const data = JSON.parse(ev.target.result);
+                Object.keys(data.parties || {}).forEach(id => {
+                    if (document.getElementById(id)) document.getElementById(id).innerText = data.parties[id].votes || 0;
+                    if (data.parties[id].prefs) {
+                        Object.keys(data.parties[id].prefs).forEach(k => {
+                            const pid = `${id}_${k}`;
+                            if (document.getElementById(pid)) document.getElementById(pid).innerText = data.parties[id].prefs[k] || 0;
+                        });
+                    }
+                });
+                invalidVotes = parseInt(data.invalid || 0);
+                destroyedVotes = parseInt(data.destroyed || 0);
+                noneVotes = parseInt(data.none || 0);
+                totalVoters = parseInt(data.totalVoters || 0);
+                includeInvalid = data.includeInvalid || false;
+
+                document.getElementById('invalid').innerText = invalidVotes;
+                document.getElementById('destroyed').innerText = destroyedVotes;
+                document.getElementById('none').innerText = noneVotes;
+                document.getElementById('totalVoters').innerText = totalVoters;
+
+                document.getElementById('invalidToggle').textContent = includeInvalid ? "⚠️ Невалидни в броя: ВКЛ." : "⚠️ Невалидни в броя: ИЗКЛ.";
+                document.getElementById('invalidToggle').classList.toggle('active', includeInvalid);
+
+                refreshUI();
+                save();
+                if (sortByVotes) applySort();
+                alert('Данните са импортирани успешно!');
+            } catch(err) {
+                alert('Грешка при импортиране на файла.');
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    function resetAll() {
+        if(confirm("Изтриване на всички резултати?")) {
+            localStorage.clear();
+            location.reload();
+        }
+    }
+
+    function togglePrefs(id) {
+        document.getElementById(`card-${id}`).classList.toggle('active');
+    }
+
     render();
 </script>
 </body>
